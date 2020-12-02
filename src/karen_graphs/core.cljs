@@ -63,5 +63,45 @@
         ]
     (set! (.-innerHTML emblems-p) (str m-preamble m-amble m-postamble "<br><br>" f-preamble f-amble f-postamble))))
 
+(defn draw-distribution
+  "Draws the probabiliby distribution of the given name."
+  [canvas birth-name sex]
+  (print (str "Got request to draw distribution with name " birth-name " and sex " sex))
+  )
+
+(defn draw-popularity
+  "Draws the probabiliby popularity of the given name."
+  [canvas birth-name sex]
+  (let [ctx (.getContext canvas "2d")
+        decades (range 1920 2020 10)
+        probs (map #(karens/prob-name-given-birth-decade-and-sex name-list birth-totals birth-name % sex) decades)
+        h (.-height canvas)
+        w (.-width canvas)
+        heights (map #(* h % 10.0) probs)
+        ]
+    (.clearRect ctx 0 0 w h)
+    (doseq [i (range 0 10)]
+           (.fillRect ctx
+                      (* i (/ w 10.0))
+                      0
+                      (* (inc i) (/ w 10.0))
+                      (nth heights i)))
+    (print (str "Got request to draw popularity with name " birth-name " and sex " sex
+                "\nprobs: " probs
+                "\nheights: " heights))))
+
+(defn draw-graphs
+  "Draw the prob vs. decade and popularity vs. decade graphs."
+  []
+  (let [distribution-canvas (.getElementById js/document "distribution")
+        popularity-canvas (.getElementById js/document "popularity")
+        birth-name (.-value (.getElementById js/document "birth-name"))
+        sex (.-value (.getElementById js/document "sex"))
+        ]
+    (draw-distribution distribution-canvas birth-name sex)
+    (draw-popularity popularity-canvas birth-name sex)
+    ))
 
 (set! (.-onclick (.getElementById js/document "decade")) get-emblematics)
+
+(set! (.-onclick (.getElementById js/document "graph")) draw-graphs)
