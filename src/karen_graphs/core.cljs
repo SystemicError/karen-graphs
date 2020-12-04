@@ -39,10 +39,14 @@
                                                  histogram
                                                  decade
                                                  %
-                                                 "male"))
+                                                 "male")
+                                         ;secondary sorty key
+                                         :pop (karens/prob-name-given-birth-decade-and-sex name-list birth-totals % "male")
+                                         )
                               male-names)
-        filtered-male-names-probs (filter #(not= "Insufficient data." (:prob %)) male-names-probs)
-        male-tops (take 10 (reverse (sort-by :prob filtered-male-names-probs)))
+        filtered-male-names-probs (filter #(and (not= "Insufficient data." (:prob %))
+                                                (not (js/isNaN (:prob %)))) male-names-probs)
+        male-tops (take 20 (reverse (sort-by #(vector (:prob %) (:pop %)) filtered-male-names-probs)))
         female-names-probs (map #(hash-map :name %
                                            :prob (karens/prob-birth-decade-given-name-and-sex
                                                    name-list
@@ -50,18 +54,25 @@
                                                    histogram
                                                    decade
                                                    %
-                                                   "female"))
+                                                   "female")
+                                           ;secondary sorty key
+                                           :pop (karens/prob-name-given-birth-decade-and-sex name-list birth-totals % "female")
+                                           )
                                 female-names)
-        filtered-female-names-probs (filter #(not= "Insufficient data." (:prob %)) female-names-probs)
-        female-tops (take 10 (reverse (sort-by :prob filtered-female-names-probs)))
+        filtered-female-names-probs (filter #(and (not= "Insufficient data." (:prob %))
+                                                  (not (js/isNaN (:prob %)))) female-names-probs)
+        female-tops (take 20 (reverse (sort-by #(vector (:prob %) (:pop %)) filtered-female-names-probs)))
         m-preamble "<table>"
         m-amble (apply str (map #(str "<tr><td>" (:name %) "</td><td>" (:prob %) "</td></tr>") male-tops))
         m-postamble "</table>"
         f-preamble "<table>"
         f-amble (apply str (map #(str "<tr><td>" (:name %) "</td><td>" (:prob %) "</td></tr>") female-tops))
         f-postamble "</table>"
+        preamble "<table><tr><td>"
+        amble "</td><td>"
+        postamble "</td></tr></table>"
         ]
-    (set! (.-innerHTML emblems-p) (str m-preamble m-amble m-postamble "<br><br>" f-preamble f-amble f-postamble))))
+    (set! (.-innerHTML emblems-p) (str preamble m-preamble m-amble m-postamble amble f-preamble f-amble f-postamble postamble))))
 
 (defn draw-axes
   "Draws the axes for the graph."
