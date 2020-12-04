@@ -65,12 +65,15 @@
 (defn prob-birth-decade-given-name-and-sex
   "Compute the probability someone has a given birth decade given only their name and sex.  Account for whether they are alive or dead (i.e., age histograms)."
   [name-list birth-totals age-histogram decade birth-name sex]
-  (let [; by a Bayesian calculation, P(decade|name) = P(name|decade)*P(decade)/P(name)
-        p-name-given-decade (prob-name-given-birth-decade-and-sex name-list birth-totals birth-name decade sex)
-        p-decade (prob-birth-decade age-histogram decade sex)
-        p-name (prob-birth-name name-list birth-totals age-histogram birth-name sex)
+  (let [decades (range 1920 2020 10)
+        ; the probability that someone in this decade has this name
+        probs-name (map #(prob-name-given-birth-decade-and-sex name-list birth-totals birth-name % sex) decades)
+        ; the probability that someone born in this decade, given only sex
+        probs-decade (map #(prob-birth-decade age-histogram % sex) decades)
+        ; assume the two prior are independent, multiply to get prob has name and decade
+        probs (map * probs-name probs-decade)
+        ; index of the above, based on decade
+        index (/ (- decade 1920) 10)
         ]
-    (if (= p-name 0.0)
-      "Insufficient data."
-      (float (/ (* p-name-given-decade p-decade) p-name)))))
+    (/ (nth probs index) (reduce + probs))))
 
